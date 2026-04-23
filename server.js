@@ -1,44 +1,43 @@
-import express from "express";
-import fetch from "node-fetch";
-import cors from "cors";
+import express from 'express';
+import fetch from 'node-fetch';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
 
-// Универсальный прокси для любых GET‑запросов
-app.get("/proxy", async (req, res) => {
-    const targetUrl = req.query.url;
+// Базовый URL PIS API
+const BASE_URL = 'https://transit.ttc.com.ge/pis-gateway/api/v2';
 
-    if (!targetUrl) {
-        return res.status(400).json({ error: "Missing ?url=" });
-    }
-
+// Проксирование остановок
+app.get('/api/stops', async (req, res) => {
     try {
-        const response = await fetch(targetUrl, {
-            headers: {
-                "User-Agent": "Mozilla/5.0",
-                "Accept": "application/json, text/plain, */*"
-            }
-        });
-
-        const contentType = response.headers.get("content-type");
-        res.setHeader("content-type", contentType);
-
-        const data = await response.text();
-        res.send(data);
-
+        const locale = req.query.locale || 'ka';
+        const response = await fetch(`${BASE_URL}/stops?locale=${locale}`);
+        const data = await response.json();
+        res.json(data);
     } catch (error) {
-        console.error("Proxy error:", error);
-        res.status(500).json({ error: "Proxy request failed" });
+        console.error('Ошибка загрузки остановок:', error);
+        res.status(500).json({ error: 'Ошибка загрузки остановок' });
     }
 });
 
-// Проверка сервера
-app.get("/", (req, res) => {
-    res.send("Tbilisi Proxy Server is running");
+// Проксирование транспорта
+app.get('/api/vehicles', async (req, res) => {
+    try {
+        const response = await fetch(`${BASE_URL}/vehicle-positions`);
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Ошибка загрузки транспорта:', error);
+        res.status(500).json({ error: 'Ошибка загрузки транспорта' });
+    }
+});
+
+// Корневой маршрут
+app.get('/', (req, res) => {
+    res.send('Tbilisi Transport Proxy API работает');
 });
 
 app.listen(PORT, () => {
