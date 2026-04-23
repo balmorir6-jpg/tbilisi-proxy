@@ -14,7 +14,13 @@ const BASE_URL = "https://transit.ttc.com.ge/pis-gateway/api/v2";
 async function proxy(req, res, endpoint) {
     try {
         const url = `${BASE_URL}${endpoint}`;
-        const response = await fetch(url);
+        const response = await fetch(url, {
+    headers: {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json"
+    }
+});
+
 
         if (!response.ok) {
             return res.status(response.status).json({ error: "Upstream error" });
