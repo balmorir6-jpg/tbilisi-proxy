@@ -1,45 +1,48 @@
-import express from 'express';
-import fetch from 'node-fetch';
-import cors from 'cors';
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 app.use(cors());
+app.use(express.json());
 
-// Базовый URL PIS API
-const BASE_URL = 'https://transit.ttc.com.ge/pis-gateway/api/v2';
+const BASE_URL = "https://transit.ttc.com.ge/pis-gateway/api/v2";
 
-// Проксирование остановок
-app.get('/api/stops', async (req, res) => {
+// Универсальная функция проксирования
+async function proxy(req, res, endpoint) {
     try {
-        const locale = req.query.locale || 'ka';
-        const response = await fetch(`${BASE_URL}/stops?locale=${locale}`);
+        const url = `${BASE_URL}${endpoint}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return res.status(response.status).json({ error: "Upstream error" });
+        }
+
         const data = await response.json();
         res.json(data);
-    } catch (error) {
-        console.error('Ошибка загрузки остановок:', error);
-        res.status(500).json({ error: 'Ошибка загрузки остановок' });
+
+    } catch (err) {
+        res.status(500).json({ error: "Proxy error", details: err.message });
     }
+}
+
+// Остановки
+app.get("/stops", (req, res) => {
+    proxy(req, res, "/stops?locale=ka");
 });
 
-// Проксирование транспорта
-app.get('/api/vehicles', async (req, res) => {
-    try {
-        const response = await fetch(`${BASE_URL}/vehicle-positions`);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        console.error('Ошибка загрузки транспорта:', error);
-        res.status(500).json({ error: 'Ошибка загрузки транспорта' });
-    }
+// Транспорт
+app.get("/vehicles", (req, res) => {
+    proxy(req, res, "/vehicle-positions");
 });
 
-// Корневой маршрут
-app.get('/', (req, res) => {
-    res.send('Tbilisi Transport Proxy API работает');
+// Маршруты
+app.get("/routes", (req, res) => {
+    proxy(req, res, "/routes");
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Proxy running on port ${PORT}`);
 });
