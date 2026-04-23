@@ -12,7 +12,7 @@ const BASE_URL = "https://transit.ttc.com.ge/pis-gateway/api/v2";
 
 async function proxy(req, res, endpoint) {
     try {
-        const url = `${BASE_URL}/${endpoint}`;
+        const url = `${BASE_URL}${endpoint}`;
 
         const response = await fetch(url, {
             headers: {
@@ -34,17 +34,18 @@ async function proxy(req, res, endpoint) {
 }
 
 app.get("/stops", (req, res) => {
-    proxy(req, res, "stops?locale=ka");
+    proxy(req, res, "/stops?locale=ka");
 });
 
 app.get("/vehicles", (req, res) => {
-    proxy(req, res, "vehicle-positions");
+    proxy(req, res, "/vehicle-positions");
 });
 
 app.get("/routes", (req, res) => {
-    proxy(req, res, "routes");
+    proxy(req, res, "/routes");
 });
 
 app.listen(PORT, () => {
     console.log(`Proxy running on port ${PORT}`);
 });
+
