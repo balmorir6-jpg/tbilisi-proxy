@@ -10,17 +10,16 @@ app.use(express.json());
 
 const BASE_URL = "https://transit.ttc.com.ge/pis-gateway/api/v2";
 
-// Универсальная функция проксирования
 async function proxy(req, res, endpoint) {
     try {
-        const url = `${BASE_URL}${endpoint}`;
-        const response = await fetch(url, {
-    headers: {
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json"
-    }
-});
+        const url = `${BASE_URL}/${endpoint}`;
 
+        const response = await fetch(url, {
+            headers: {
+                "User-Agent": "Mozilla/5.0",
+                "Accept": "application/json"
+            }
+        });
 
         if (!response.ok) {
             return res.status(response.status).json({ error: "Upstream error" });
@@ -34,19 +33,16 @@ async function proxy(req, res, endpoint) {
     }
 }
 
-// Остановки
 app.get("/stops", (req, res) => {
-    proxy(req, res, "/stops?locale=ka");
+    proxy(req, res, "stops?locale=ka");
 });
 
-// Транспорт
 app.get("/vehicles", (req, res) => {
-    proxy(req, res, "/vehicle-positions");
+    proxy(req, res, "vehicle-positions");
 });
 
-// Маршруты
 app.get("/routes", (req, res) => {
-    proxy(req, res, "/routes");
+    proxy(req, res, "routes");
 });
 
 app.listen(PORT, () => {
