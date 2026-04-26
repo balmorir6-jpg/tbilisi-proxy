@@ -8,11 +8,11 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-const BASE_URL = "https://transit.ttc.com.ge/pis-gateway/api/v2/";
+const BASE_URL = "https://transit.ttc.com.ge/pis-gateway/api/v2";
 
 async function proxy(endpoint, req, res) {
   try {
-    const url = `${BASE_URL}${endpoint}`;
+    const url = `${BASE_URL}/${endpoint}`;
 
     const response = await fetch(url, {
       headers: {
@@ -27,6 +27,7 @@ async function proxy(endpoint, req, res) {
 
     const data = await response.json();
     return res.json(data);
+
   } catch (err) {
     console.error("Proxy error:", err);
     return res.status(500).json({ error: "Proxy internal error" });
